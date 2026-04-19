@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base Line Store ✦ KPop Shop</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #fc9db5;
+  --light: #feedf2;
+  --dark-pink: #e0628a;
+  --deep: #9c2d52;
+  --text: #3a1422;
+  --muted: #a0637a;
+  --white: #ffffff;
+  --card-bg: rgba(255,255,255,0.88);
+  --border: rgba(252,157,181,0.25);
+  --shadow: 0 6px 36px rgba(252,157,181,0.22);
+  --r: 16px;
+  --r-sm: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh;}
+#gc{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+
+/* HEADER */
+header{position:relative;z-index:10;background:linear-gradient(180deg,#fff5f8 0%,var(--light) 100%);padding:36px 20px 0;text-align:center;}
+.title-wrap{display:inline-block;position:relative;padding:12px 44px 12px;}
+.store-title{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(2rem,6vw,3.8rem);color:var(--deep);letter-spacing:.04em;line-height:1.1;text-shadow:0 2px 20px rgba(224,98,138,.15);}
+.store-kicker{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.95rem;color:var(--muted);letter-spacing:.18em;margin-top:4px;display:block;}
+.sp{position:absolute;font-size:1.5rem;line-height:1;animation:sp-pulse 2s ease-in-out infinite;user-select:none;pointer-events:none;color:var(--pink);}
+.sp:nth-child(2),.sp:nth-child(4),.sp:nth-child(7){color:var(--dark-pink);}
+.sp:nth-child(3),.sp:nth-child(6){color:#fbb6ca;font-size:1.1rem;}
+.sp:nth-child(1){top:-12px;left:2px;animation-delay:0s;}
+.sp:nth-child(2){top:-18px;left:38%;animation-delay:.25s;}
+.sp:nth-child(3){top:-12px;right:2px;animation-delay:.5s;}
+.sp:nth-child(4){bottom:-14px;left:10%;animation-delay:.75s;}
+.sp:nth-child(5){bottom:-14px;right:10%;animation-delay:1s;}
+.sp:nth-child(6){top:28%;left:-18px;animation-delay:.35s;}
+.sp:nth-child(7){top:28%;right:-18px;animation-delay:.65s;}
+.sp:nth-child(8){bottom:-14px;left:50%;animation-delay:1.3s;}
+@keyframes sp-pulse{0%,100%{transform:scale(1) rotate(0deg);opacity:.65;}50%{transform:scale(1.45) rotate(22deg);opacity:1;}}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(255,245,248,.96);backdrop-filter:blur(14px);border-bottom:1.5px solid var(--border);display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:0 8px;}
+nav button{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:15px 20px;cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;}
+nav button:hover,nav button.active{color:var(--deep);border-bottom-color:var(--pink);}
+.cart-btn{position:relative;margin-left:8px;background:linear-gradient(135deg,var(--pink),var(--dark-pink)) !important;color:#fff !important;border:none !important;border-radius:20px !important;padding:8px 18px !important;font-size:.82rem !important;font-weight:700 !important;letter-spacing:.08em !important;box-shadow:0 3px 14px rgba(224,98,138,.28);transition:transform .18s,box-shadow .18s !important;border-bottom:none !important;}
+.cart-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(224,98,138,.36) !important;}
+.cart-count{position:absolute;top:-6px;right:-6px;background:var(--deep);color:#fff;width:18px;height:18px;border-radius:50%;font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--white);}
+.cart-count.hidden{display:none;}
+
+/* PAGES */
+.page{display:none;padding:32px 16px 64px;max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+.page.active{display:block;animation:fadein .3s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* SECTION TITLE */
+.sec-title{font-family:'Playfair Display',serif;font-size:1.65rem;font-weight:700;color:var(--deep);text-align:center;margin-bottom:28px;}
+.sec-title::after{content:'';display:block;width:52px;height:3px;background:var(--pink);border-radius:2px;margin:8px auto 0;}
+
+/* PRODUCT GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px;}
+.card{background:var(--card-bg);border-radius:var(--r);box-shadow:var(--shadow);border:1.5px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .22s,box-shadow .22s;backdrop-filter:blur(8px);}
+.card:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 16px 44px rgba(252,157,181,.32);}
+.card-img{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#fff0f5,var(--light));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.card-img img{width:100%;height:100%;object-fit:cover;}
+.card-img .no-img{font-size:3.5rem;opacity:.3;}
+.badge{position:absolute;top:10px;left:10px;background:var(--pink);color:#fff;font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;}
+.badge.pre{background:var(--dark-pink);}
+.card-body{padding:13px 15px 16px;}
+.card-name{font-family:'Playfair Display',serif;font-size:.97rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.card-artist{font-size:.78rem;color:var(--muted);margin-bottom:8px;}
+.card-price{font-size:1rem;font-weight:700;color:var(--deep);}
+
+/* PRODUCT DETAIL */
+#page-detail{max-width:860px;}
+.back-btn{background:none;border:none;color:var(--pink);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:22px;transition:color .2s;}
+.back-btn:hover{color:var(--deep);}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;}
+@media(max-width:640px){.detail-grid{grid-template-columns:1fr;}}
+.detail-img-wrap{border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;background:linear-gradient(135deg,#fff0f5,var(--light));display:flex;align-items:center;justify-content:center;}
+.detail-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.detail-img-wrap .no-img{font-size:5rem;opacity:.25;}
+.detail-title{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--deep);margin-bottom:4px;}
+.detail-artist{font-size:.9rem;color:var(--muted);margin-bottom:14px;}
+.detail-price{font-size:1.35rem;font-weight:700;color:var(--deep);margin-bottom:18px;}
+.detail-section{margin-bottom:16px;}
+.detail-section h4{font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.detail-section p,.detail-section ul{font-size:.9rem;color:var(--text);line-height:1.6;}
+.detail-section ul{list-style:none;padding:0;}
+.detail-section ul li::before{content:"✦ ";color:var(--pink);font-size:.7rem;}
+.presale-notice{background:linear-gradient(135deg,rgba(252,157,181,.15),rgba(254,237,242,.6));border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px 16px;font-size:.82rem;color:var(--deep);margin-bottom:18px;line-height:1.5;}
+.presale-notice strong{display:block;margin-bottom:3px;}
+.det-versions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.det-ver-btn{padding:7px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--light);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--text);cursor:pointer;transition:border-color .18s,background .18s;}
+.det-ver-btn.selected{border-color:var(--pink);background:rgba(252,157,181,.15);color:var(--deep);font-weight:700;}
+.btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink),var(--dark-pink));color:#fff;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 4px 18px rgba(224,98,138,.3);transition:transform .18s,box-shadow .18s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(224,98,138,.38);}
+
+/* CART PAGE */
+#page-cart{max-width:720px;}
+.cart-empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:.95rem;line-height:1.6;}
+.cart-empty .empty-icon{font-size:3rem;margin-bottom:12px;}
+.cart-item{background:var(--card-bg);border-radius:var(--r);border:1.5px solid var(--border);box-shadow:0 2px 14px rgba(252,157,181,.12);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
+.ci-img{width:58px;height:58px;border-radius:var(--r-sm);background:linear-gradient(135deg,#fff0f5,var(--light));display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;font-size:1.5rem;opacity:.5;}
+.ci-img img{width:100%;height:100%;object-fit:cover;opacity:1;}
+.ci-info{flex:1;}
+.ci-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text);}
+.ci-sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.ci-qty{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.ci-qty button{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);background:var(--light);cursor:pointer;font-size:.9rem;color:var(--deep);display:flex;align-items:center;justify-content:center;transition:background .18s;}
+.ci-qty button:hover{background:rgba(252,157,181,.25);}
+.ci-qty span{font-size:.88rem;font-weight:600;color:var(--deep);min-width:18px;text-align:center;}
+.ci-remove{background:none;border:none;cursor:pointer;color:rgba(160,99,122,.4);font-size:1.1rem;transition:color .18s;padding:4px;flex-shrink:0;}
+.ci-remove:hover{color:var(--dark-pink);}
+.cart-footer{background:var(--card-bg);border-radius:var(--r);border:1.5px solid var(--border);padding:18px 20px;margin-top:6px;}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.cart-total-label{font-size:.88rem;color:var(--muted);}
+.cart-total-val{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--deep);}
+.btn-checkout{width:100%;padding:14px;background:linear-gradient(135deg,var(--pink),var(--dark-pink));color:#fff;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.06em;cursor:pointer;box-shadow:0 4px 18px rgba(224,98,138,.3);transition:transform .18s,box-shadow .18s;}
+.btn-checkout:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(224,98,138,.38);}
+
+/* IG REMINDER BANNER */
+.ig-reminder{background:linear-gradient(135deg,rgba(252,157,181,.18),rgba(254,237,242,.7));border:1.5px solid rgba(252,157,181,.4);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;font-size:.82rem;color:var(--deep);line-height:1.5;}
+.ig-reminder .ig-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px;}
+
+/* ORDER MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(58,20,34,.45);z-index:500;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:20px 16px;overflow-y:auto;}
+.overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--r);box-shadow:0 24px 80px rgba(58,20,34,.22);width:100%;max-width:560px;padding:32px 28px;position:relative;margin:auto;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer;transition:color .15s;}
+.modal-close:hover{color:var(--deep);}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--deep);margin-bottom:4px;}
+.modal-subtitle{font-size:.82rem;color:var(--muted);margin-bottom:22px;}
+.steps{display:flex;gap:6px;margin-bottom:26px;}
+.step-dot{flex:1;height:4px;border-radius:4px;background:rgba(252,157,181,.25);transition:background .3s;}
+.step-dot.done{background:var(--pink);}
+.form-step{display:none;}
+.form-step.active{display:block;animation:fadein .25s ease;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:480px){.form-row{grid-template-columns:1fr;}}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase;}
+.field input,.field select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);background:var(--light);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus{border-color:var(--pink);}
+.ship-options{display:grid;gap:8px;margin-bottom:14px;}
+.ship-opt{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;background:var(--light);transition:border-color .18s,background .18s;}
+.ship-opt input[type=radio]{accent-color:var(--pink);width:16px;height:16px;}
+.ship-opt.selected{border-color:var(--pink);background:rgba(252,157,181,.12);}
+.ship-opt-info .ship-name{font-size:.88rem;font-weight:600;color:var(--text);}
+.ship-opt-info .ship-desc{font-size:.76rem;color:var(--muted);}
+.pay-box{background:var(--light);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:16px;margin-bottom:16px;}
+.pay-box h4{font-size:.82rem;font-weight:700;color:var(--deep);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;}
+.pay-method{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);cursor:pointer;background:var(--white);margin-bottom:8px;transition:border-color .18s;}
+.pay-method input{accent-color:var(--pink);}
+.pay-method.selected{border-color:var(--pink);}
+.pay-method-name{font-size:.88rem;font-weight:600;color:var(--text);}
+.pay-method-desc{font-size:.75rem;color:var(--muted);}
+.bank-details{background:rgba(252,157,181,.1);border:1.5px dashed var(--pink);border-radius:var(--r-sm);padding:14px 16px;margin-top:12px;font-size:.85rem;line-height:1.7;color:var(--text);}
+.bank-details strong{color:var(--deep);}
+.mp-notice{background:rgba(252,157,181,.1);border:1.5px dashed var(--pink);border-radius:var(--r-sm);padding:14px 16px;margin-top:12px;font-size:.85rem;line-height:1.5;color:var(--text);}
+.order-summary{background:var(--light);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:18px;font-size:.88rem;line-height:1.8;}
+.order-summary .row{display:flex;justify-content:space-between;}
+.order-summary .total{font-weight:700;color:var(--deep);border-top:1.5px solid var(--border);padding-top:8px;margin-top:4px;}
+.btn-row{display:flex;gap:10px;margin-top:8px;}
+.btn-sec{flex:1;padding:12px;background:none;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .18s,color .18s;}
+.btn-sec:hover{border-color:var(--pink);color:var(--deep);}
+.btn-pri{flex:2;padding:12px;background:linear-gradient(135deg,var(--pink),var(--dark-pink));border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(224,98,138,.28);transition:transform .18s,box-shadow .18s;}
+.btn-pri:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(224,98,138,.36);}
+.success-box{text-align:center;padding:16px 0;}
+.success-icon{font-size:3.2rem;margin-bottom:12px;}
+.success-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--deep);margin-bottom:6px;}
+.success-msg{font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:16px;}
+.order-code{display:inline-block;background:linear-gradient(135deg,rgba(252,157,181,.2),rgba(254,237,242,.8));border:1.5px dashed var(--pink);border-radius:var(--r-sm);padding:10px 22px;font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--deep);letter-spacing:.1em;margin-bottom:16px;}
+.success-ig-note{background:rgba(252,157,181,.12);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--deep);line-height:1.5;margin-bottom:16px;}
+
+/* TRACKING – lafav style */
+.tracking-wrap{max-width:640px;margin:0 auto;}
+
+/* Search box */
+.track-search-card{
+  background:var(--white);border-radius:var(--r);
+  box-shadow:var(--shadow);border:1.5px solid var(--border);
+  padding:32px 28px;text-align:center;margin-bottom:24px;
+}
+.track-search-icon{font-size:2.4rem;margin-bottom:10px;}
+.track-search-title{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--deep);margin-bottom:6px;}
+.track-search-sub{font-size:.83rem;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+.track-input-wrap{display:flex;gap:8px;}
+.track-input-wrap input{flex:1;padding:12px 16px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:.92rem;color:var(--text);background:var(--light);outline:none;transition:border-color .2s;}
+.track-input-wrap input:focus{border-color:var(--pink);}
+.btn-track{padding:12px 22px;background:linear-gradient(135deg,var(--pink),var(--dark-pink));border:none;border-radius:var(--r-sm);color:#fff;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(224,98,138,.25);transition:transform .18s;}
+.btn-track:hover{transform:translateY(-1px);}
+
+/* Result */
+.track-result{display:none;}
+.track-result.show{display:block;animation:fadein .3s ease;}
+.track-empty{text-align:center;padding:24px 0;color:var(--muted);font-size:.88rem;}
+
+/* Order card */
+.order-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);border:1.5px solid var(--border);overflow:hidden;margin-bottom:16px;}
+.order-card-head{
+  background:linear-gradient(135deg,var(--pink),var(--dark-pink));
+  padding:18px 22px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:10px;
+}
+.order-card-code{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:.05em;}
+.order-card-date{font-size:.78rem;color:rgba(255,255,255,.8);}
+
+/* Progress bar */
+.progress-section{padding:22px 22px 18px;}
+.progress-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.progress-steps{display:flex;align-items:flex-start;position:relative;}
+.progress-line-bg{position:absolute;top:12px;left:12px;right:12px;height:3px;background:var(--border);z-index:0;}
+.progress-line-fill{position:absolute;top:12px;left:12px;height:3px;background:linear-gradient(90deg,var(--pink),var(--dark-pink));z-index:1;transition:width .6s ease;}
+.ps-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:2;}
+.ps-dot{
+  width:24px;height:24px;border-radius:50%;
+  border:2.5px solid var(--border);background:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;transition:all .3s;
+}
+.ps-dot.done{background:var(--pink);border-color:var(--pink);color:#fff;}
+.ps-dot.current{background:var(--white);border-color:var(--dark-pink);box-shadow:0 0 0 4px rgba(224,98,138,.18);color:var(--dark-pink);}
+.ps-label{font-size:.67rem;font-weight:600;color:var(--muted);text-align:center;line-height:1.3;max-width:60px;}
+.ps-label.active{color:var(--deep);}
+
+/* Status pill */
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:20px;
+  font-size:.73rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  background:rgba(255,255,255,.28);color:#fff;
+}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#fff;}
+
+/* Sections inside card */
+.order-section{padding:0 22px 18px;}
+.order-section + .order-section{border-top:1.5px solid var(--border);padding-top:16px;}
+.order-sec-title{font-size:.7rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+/* Product rows */
+.order-item-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;}
+.order-item-row + .order-item-row{border-top:1px solid var(--border);}
+.oi-name{font-size:.88rem;font-weight:600;color:var(--text);}
+.oi-meta{font-size:.75rem;color:var(--muted);margin-top:1px;}
+.oi-price{font-size:.88rem;font-weight:700;color:var(--deep);white-space:nowrap;}
+.order-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:10px;margin-top:4px;border-top:2px solid var(--border);}
+.order-total-label{font-size:.82rem;font-weight:700;color:var(--text);}
+.order-total-val{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--deep);}
+
+/* Address block */
+.address-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:480px){.address-grid{grid-template-columns:1fr;}}
+.addr-field{background:var(--light);border-radius:var(--r-sm);padding:9px 12px;}
+.addr-key{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.addr-val{font-size:.83rem;color:var(--text);font-weight:500;}
+
+/* Payment/shipping chips */
+.info-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.info-chip{display:inline-flex;align-items:center;gap:5px;background:var(--light);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.78rem;font-weight:600;color:var(--text);}
+
+/* FOOTER */
+footer{position:relative;z-index:10;background:var(--white);border-top:1.5px solid var(--border);}
+
+/* Contact — always visible */
+.footer-contact{background:var(--light);border-bottom:1.5px solid var(--border);padding:20px 24px;}
+.footer-contact-inner{max-width:760px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:space-between;}
+.footer-contact-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--deep);white-space:nowrap;}
+.contact-links{display:flex;flex-wrap:wrap;gap:10px;}
+.contact-pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--border);border-radius:30px;padding:7px 16px;text-decoration:none;color:var(--text);font-size:.82rem;font-weight:600;transition:border-color .18s,transform .18s,box-shadow .18s;}
+.contact-pill:hover{border-color:var(--pink);transform:translateY(-2px);box-shadow:0 4px 14px rgba(252,157,181,.22);}
+
+/* TOS Accordion */
+.footer-tos{max-width:760px;margin:0 auto;}
+.tos-toggle{width:100%;background:none;border:none;display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);transition:color .2s;border-bottom:1.5px solid transparent;}
+.tos-toggle:hover{color:var(--deep);}
+.tos-toggle.open{color:var(--deep);border-bottom-color:var(--border);}
+.chevron{font-size:.9rem;transition:transform .3s;display:inline-block;}
+.tos-toggle.open .chevron{transform:rotate(180deg);}
+.tos-body{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(0.4,0,0.2,1);}
+.tos-body.open{max-height:900px;}
+.tos-inner{padding:20px 24px 28px;}
+.tos-content{font-size:.85rem;line-height:1.75;color:var(--text);}
+.tos-content h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);margin:18px 0 6px;}
+.tos-content h3:first-child{margin-top:0;}
+.tos-content p{margin-bottom:8px;}
+
+.footer-bottom{text-align:center;padding:14px 20px;font-size:.76rem;color:var(--muted);border-top:1.5px solid var(--border);background:var(--light);}
+
+@media(max-width:500px){
+  .modal{padding:24px 18px;}
+  nav button{padding:13px 12px;font-size:.74rem;letter-spacing:.09em;}
+  .footer-contact-inner{flex-direction:column;align-items:flex-start;}
+}
+
+/* CHECKOUT PAGE */
+#page-checkout{max-width:720px;}
+.checkout-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;}
+@media(max-width:660px){.checkout-layout{grid-template-columns:1fr;}}
+
+.checkout-steps{display:flex;gap:0;margin-bottom:28px;border-radius:var(--r-sm);overflow:hidden;border:1.5px solid var(--border);}
+.ck-step{
+  flex:1;padding:10px 6px;text-align:center;
+  background:var(--white);
+  font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);border-right:1.5px solid var(--border);
+  transition:background .25s,color .25s;
+}
+.ck-step:last-child{border-right:none;}
+.ck-step.active{background:linear-gradient(135deg,var(--pink),var(--dark-pink));color:#fff;}
+.ck-step.done{background:rgba(252,157,181,.15);color:var(--deep);}
+
+.ck-panel{display:none;}
+.ck-panel.active{display:block;animation:fadein .28s ease;}
+
+.ck-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--deep);margin-bottom:16px;}
+
+
+
+/* order sidebar */
+.checkout-sidebar{
+  background:var(--white);border-radius:var(--r);
+  border:1.5px solid var(--border);box-shadow:var(--shadow);
+  padding:20px;position:sticky;top:80px;
+}
+.sidebar-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--deep);margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px solid var(--border);}
+.sidebar-item{display:flex;justify-content:space-between;gap:10px;font-size:.83rem;padding:5px 0;border-bottom:1px solid var(--border);}
+.sidebar-item:last-of-type{border-bottom:none;}
+.si-name{color:var(--text);}
+.si-meta{font-size:.74rem;color:var(--muted);}
+.si-price{font-weight:700;color:var(--deep);white-space:nowrap;}
+.sidebar-total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:2px solid var(--border);}
+.sidebar-total-label{font-size:.82rem;font-weight:700;color:var(--text);}
+.sidebar-total-val{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--deep);}
+
+/* success page */
+.checkout-success{text-align:center;padding:32px 20px;max-width:520px;margin:0 auto;}
+.cs-icon{font-size:3rem;margin-bottom:14px;}
+.cs-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--deep);margin-bottom:8px;}
+.cs-msg{font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.cs-code{
+  display:inline-block;
+  background:linear-gradient(135deg,rgba(252,157,181,.2),rgba(254,237,242,.8));
+  border:1.5px dashed var(--pink);border-radius:var(--r-sm);
+  padding:12px 28px;margin-bottom:16px;
+  font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;
+  color:var(--deep);letter-spacing:.12em;
+}
+.cs-ig-note{background:rgba(252,157,181,.12);border-radius:var(--r-sm);padding:11px 16px;font-size:.83rem;color:var(--deep);line-height:1.5;margin-bottom:16px;}
+.cs-back{
+  background:none;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  padding:11px 28px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:border-color .18s,color .18s;margin-top:4px;
+}
+.cs-back:hover{border-color:var(--pink);color:var(--deep);}
+
+/* PAYMENT PLAN */
+.pay-plan-box{background:var(--light);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;}
+.pay-plan-box h4{font-size:.78rem;font-weight:700;color:var(--deep);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;}
+.pay-plan-opt{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  cursor:pointer;background:var(--white);margin-bottom:8px;transition:border-color .18s;
+}
+.pay-plan-opt input{accent-color:var(--pink);margin-top:2px;flex-shrink:0;}
+.pay-plan-opt.selected{border-color:var(--pink);}
+.pay-plan-name{font-size:.88rem;font-weight:600;color:var(--text);}
+.pay-plan-desc{font-size:.75rem;color:var(--muted);margin-top:2px;line-height:1.4;}
+.pay-plan-amount{font-size:.88rem;font-weight:700;color:var(--deep);margin-top:4px;}
+.abono-notice{
+  background:linear-gradient(135deg,rgba(252,157,181,.15),rgba(254,237,242,.6));
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  padding:11px 14px;font-size:.82rem;color:var(--deep);
+  line-height:1.5;margin-top:10px;
+}
+.abono-notice strong{display:block;margin-bottom:2px;}
+
+/* PAYMENT DEADLINE */
+.deadline-box{
+  background:linear-gradient(135deg,rgba(252,157,181,.15),rgba(254,237,242,.7));
+  border:1.5px solid rgba(252,157,181,.4);
+  border-radius:var(--r-sm);
+  padding:13px 16px;margin-bottom:0;
+  display:flex;align-items:center;gap:10px;
+}
+.deadline-icon{font-size:1.2rem;flex-shrink:0;}
+.deadline-text{font-size:.83rem;color:var(--deep);line-height:1.5;}
+.deadline-text strong{display:block;font-size:.9rem;margin-bottom:1px;}
+.deadline-expired{
+  background:rgba(220,80,80,.08);
+  border-color:rgba(220,80,80,.3);
+}
+.deadline-expired .deadline-text{color:#8a2020;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 22px;border-radius:30px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s,transform .3s;z-index:999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<canvas id="gc"></canvas>
+
+<!-- HEADER -->
+<header>
+  <div class="title-wrap">
+    <span class="sp">✦</span>
+    <span class="sp">♥</span>
+    <span class="sp">✧</span>
+    <span class="sp">♥</span>
+    <span class="sp">✦</span>
+    <span class="sp">✧</span>
+    <span class="sp">♥</span>
+    <span class="sp">✦</span>
+    <h1 class="store-title">Base Line Store</h1>
+    <span class="store-kicker">Tienda K-pop, Chile</span>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <button class="active" data-page="page-albums">Álbumes</button>
+  <button data-page="page-photocards">Photocards</button>
+  <button data-page="page-tracking">Seguimiento Pedido</button>
+  <button class="cart-btn" data-page="page-cart">
+    🛒 Carrito
+    <span class="cart-count hidden" id="cart-count">0</span>
+  </button>
+</nav>
+
+<!-- PAGE: ÁLBUMES -->
+<section class="page active" id="page-albums">
+  <h2 class="sec-title">Álbumes</h2>
+  <div class="grid" id="albums-grid"></div>
+</section>
+
+<!-- PAGE: PHOTOCARDS -->
+<section class="page" id="page-photocards">
+  <h2 class="sec-title">Photocards</h2>
+  <div class="grid" id="photocards-grid"></div>
+</section>
+
+<!-- PAGE: DETALLE -->
+<section class="page" id="page-detail">
+  <button class="back-btn" id="back-btn">← Volver</button>
+  <div class="detail-grid">
+    <div class="detail-img-wrap" id="detail-img-wrap"><span class="no-img">💿</span></div>
+    <div class="detail-info" id="detail-info"></div>
+  </div>
+</section>
+
+<!-- PAGE: CARRITO -->
+<section class="page" id="page-cart">
+  <h2 class="sec-title">Carrito</h2>
+  <div id="cart-items-wrap"></div>
+</section>
+
+<!-- PAGE: CHECKOUT -->
+<section class="page" id="page-checkout">
+  <button class="back-btn" id="checkout-back-btn">← Volver al carrito</button>
+  <div id="checkout-body"></div>
+</section>
+
+<!-- PAGE: TRACKING -->
+<section class="page" id="page-tracking">
+  <h2 class="sec-title">Seguimiento de Pedido</h2>
+  <div class="tracking-wrap">
+    <div class="track-search-card">
+      <div class="track-search-icon">✦</div>
+      <div class="track-search-title">Revisa tu pedido</div>
+      <p class="track-search-sub">Ingresa tu usuario de Instagram para ver el estado<br>y detalle de tu orden.</p>
+      <div class="track-input-wrap">
+        <input type="text" id="track-input" placeholder="@tu_usuario_instagram">
+        <button class="btn-track" onclick="trackOrder()">Buscar</button>
+      </div>
+    </div>
+    <div class="track-result" id="track-result"></div>
+    <div class="track-empty" id="track-empty" style="display:none;">
+      <p style="font-size:.9rem;color:var(--muted);">No encontramos pedidos para ese usuario.<br><span style="font-size:.8rem;">Verifica que el usuario sea el mismo que ingresaste al comprar.</span></p>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer>
+  <!-- Contacto siempre visible -->
+  <div class="footer-contact">
+    <div class="footer-contact-inner">
+      <div class="footer-contact-title">✦ Contáctanos</div>
+      <div class="contact-links">
+        <a class="contact-pill" href="https://instagram.com/baselinestore" target="_blank"><span>📸</span> @baselinestore</a>
+        <a class="contact-pill" href="https://wa.me/56900000000" target="_blank"><span>💬</span> WhatsApp</a>
+        <a class="contact-pill" href="/cdn-cgi/l/email-protection#5a3935342e3b392e351a383b293f3633343f292e35283f743936"><span>✉️</span> <span class="__cf_email__" data-cfemail="593a36372d383a2d36193b382a3c3530373c2a2d362b3c773a35">[email&#160;protected]</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOS acordeón -->
+  <div class="footer-tos">
+    <button class="tos-toggle" id="tos-toggle" onclick="toggleTos()">
+      Términos y Condiciones
+      <span class="chevron">▾</span>
+    </button>
+    <div class="tos-body" id="tos-body">
+      <div class="tos-inner">
+        <div class="tos-content">
+          <h3>1. Pedidos y Preventa</h3>
+          <p>Los pedidos en preventa tienen un tiempo estimado de llegada de <strong>2 a 4 semanas</strong> después del lanzamiento oficial, por los tiempos de importación a Chile. El envío se realiza una vez recibida la mercancía.</p>
+          <h3>2. Pago y Confirmación</h3>
+          <p>El pedido queda <strong>reservado</strong> al registrar la orden. La confirmación final se realiza al verificar el pago. Los datos de transferencia bancaria se entregan al confirmar el pedido. El link de Mercado Pago se envía por correo e incluye la comisión de plataforma más IVA.</p>
+          <h3>3. Envíos</h3>
+          <p>Enviamos a todo Chile con Starken y Bluexpress (por pagar o pagado). Para Temuco ofrecemos entrega presencial coordinada por WhatsApp. No nos responsabilizamos por retrasos del courier una vez despachado el paquete.</p>
+          <h3>4. Devoluciones</h3>
+          <p>Aceptamos cambios o devoluciones solo por defecto de fábrica dentro de los 7 días hábiles de recepción. No se aceptan devoluciones por cambio de decisión en productos de preventa.</p>
+          <h3>5. Productos</h3>
+          <p>Todos los productos son oficiales. Las imágenes son referenciales; el contenido físico puede variar según la versión seleccionada.</p>
+          <h3>6. Privacidad</h3>
+          <p>Los datos personales se usan exclusivamente para gestionar tu pedido y no se comparten con terceros.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">© 2025 Base Line Store · Tienda K-pop, Chile 💎 · Temuco</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ── SUPABASE ── */
+const SUPABASE_URL = 'https://iiwlbimydinbamlxtmzs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpd2xiaW15ZGluYmFtbHh0bXpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3ODA4ODIsImV4cCI6MjA4OTM1Njg4Mn0.SJE2hFScvDdMwDYMrlEbt7yhw2m_oOg0uX4RluIkMbs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── DATA ── */
+const PRODUCTS = [
+  {
+    id: 1,
+    category: 'albums',
+    name: 'ARIRANG (Standard Ver.)',
+    artist: 'BTS',
+    price: 33990,
+    badge: 'preventa',
+    img: 'https://i.ibb.co/Ty46v8z/Standard-Ver.png',
+    versions: ['Rooted in Korea', 'Rooted in Music', 'Random Ver.'],
+    releaseDate: '2026-03-20',
+    tracks: [
+      'Body to Body', 'Hooligan', 'Aliens', 'FYA', '2.0',
+      'No. 29', 'SWIM', 'Merry Go Round', 'NORMAL', 'Like Animals',
+      "They Don't Know 'Bout Us", 'One More Night', 'Please', 'Into the Sun'
+    ],
+    inclusions: [
+      'Outbox', 'Badge', 'Envelope', 'CD-R Envelope', 'CD-R',
+      'Photocard Set', 'Photocard Holder', 'Poster', 'Photobook'
+    ],
+    presale: true,
+    benefits: 'Random Selfie Photocard (A) + Random Selfie Film-Mount Keyring',
+    description: 'Luego de tres años y nueve meses BTS regresa con ARIRANG, su quinto álbum de estudio.',
+    paymentDeadline: '',
+  },
+  // Agrega más productos aquí siguiendo el mismo formato
+];
+
+const ORDERS = [
+  {
+    instagram:'@demo_user',
+    id:'BLS-1042',
+    status:'confirmed',
+    items:[
+      {name:'FML',artist:'BTS',version:'Weverse',qty:1,price:29990},
+      {name:'Lomo Card TWICE',artist:'TWICE',version:'Sana',qty:2,price:3990}
+    ],
+    total:37970,
+    payMethod:'Transferencia Bancaria',
+    shipping:'Starken (Pagado)',
+    address:{nombre:'Valentina Rojas',rut:'20.123.456-7',tel:'+56 9 8765 4321',dir:'Av. Alemania 1234',comuna:'Temuco',region:'La Araucania'},
+    timeline:[
+      {done:true,title:'Pedido recibido',desc:'Tu orden fue registrada exitosamente',date:'12 Jun 2025'},
+      {done:true,title:'Pago confirmado',desc:'El pago fue verificado',date:'12 Jun 2025'},
+      {done:false,current:true,title:'En espera del album',desc:'Esperando llegada desde Corea (2-4 semanas post-lanzamiento)',date:''},
+      {done:false,title:'Enviado',desc:'',date:''},
+      {done:false,title:'Entregado',desc:'',date:''}
+    ]
+  }
+];
+
+/* ── CART ── */
+let cart = [];
+function cartTotal(){ return cart.reduce((s,i)=>s+i.product.price*i.qty,0); }
+function cartCount(){ return cart.reduce((s,i)=>s+i.qty,0); }
+function updateBadge(){
+  const n=cartCount();
+  const el=document.getElementById('cart-count');
+  el.textContent=n; el.classList.toggle('hidden',n===0);
+}
+function addToCart(id,version){
+  const p=PRODUCTS.find(x=>x.id===id); if(!p) return;
+  const ex=cart.find(i=>i.product.id===id&&i.version===version);
+  if(ex) ex.qty++; else cart.push({product:p,version,qty:1});
+  updateBadge(); showToast(`✦ ${p.name} añadido al carrito`);
+}
+function removeFromCart(idx){ cart.splice(idx,1); updateBadge(); renderCart(); }
+function changeCartQty(idx,d){ cart[idx].qty=Math.max(1,cart[idx].qty+d); updateBadge(); renderCart(); }
+
+function renderCart(){
+  const wrap=document.getElementById('cart-items-wrap');
+  if(!cart.length){
+    wrap.innerHTML=`<div class="cart-empty"><div class="empty-icon">🛒</div><p>Tu carrito está vacío.<br>Explora nuestros álbumes y photocards 💕</p></div>`;
+    return;
+  }
+  let html=cart.map((item,i)=>`
+    <div class="cart-item">
+      <div class="ci-img">${item.product.img?`<img src="${item.product.img}" alt="">`:(item.product.category==='albums'?'💿':'🃏')}</div>
+      <div class="ci-info">
+        <div class="ci-name">${item.product.name}</div>
+        <div class="ci-sub">${item.product.artist} · ${item.version}</div>
+        <div class="ci-qty">
+          <button onclick="changeCartQty(${i},-1)">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeCartQty(${i},1)">+</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <button class="ci-remove" onclick="removeFromCart(${i})">✕</button>
+        <div style="font-size:.95rem;font-weight:700;color:var(--deep);">$${(item.product.price*item.qty).toLocaleString('es-CL')}</div>
+      </div>
+    </div>`).join('');
+  html+=`<div class="cart-footer">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total (${cartCount()} producto${cartCount()!==1?'s':''})</span>
+      <span class="cart-total-val">$${cartTotal().toLocaleString('es-CL')}</span>
+    </div>
+    <div class="ig-reminder" style="margin-bottom:14px;">
+      <span class="ig-icon">📸</span>
+      <span>Recuerda: usarás tu <strong>usuario de Instagram</strong> para revisar tu pedido en "Seguimiento Pedido".</span>
+    </div>
+    <button class="btn-checkout" onclick="openCheckoutPage()">Proceder al Pago ✦</button>
+  </div>`;
+  wrap.innerHTML=html;
+}
+
+/* ── GLITTER ── */
+(function(){
+  const c=document.getElementById('gc'),ctx=c.getContext('2d');
+  let W,H,P=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  const colors=['#fc9db5','#feedf2','#e0628a','#ffd6e6','#ffffff','#f8b4cc'];
+  function rand(a,b){return Math.random()*(b-a)+a;}
+  for(let i=0;i<90;i++) P.push({x:rand(0,window.innerWidth),y:rand(0,window.innerHeight),r:rand(1.2,3.2),dx:rand(-.3,.3),dy:rand(-.5,-.1),o:rand(.3,.9),do:rand(.003,.008),color:colors[Math.floor(rand(0,colors.length))],shape:Math.random()>.5?'d':'c'});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    P.forEach(p=>{
+      p.x+=p.dx;p.y+=p.dy;p.o+=p.do;
+      if(p.o>=1||p.o<=.15)p.do*=-1;
+      if(p.y<-10)p.y=H+5; if(p.x<-10)p.x=W+5; if(p.x>W+10)p.x=-5;
+      ctx.save();ctx.globalAlpha=p.o;ctx.fillStyle=p.color;
+      if(p.shape==='d'){ctx.translate(p.x,p.y);ctx.rotate(Math.PI/4);ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2);}
+      else{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── NAVIGATION ── */
+let prevPage='page-albums', currentPage='page-albums';
+document.querySelectorAll('nav button[data-page]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const t=btn.dataset.page;
+    if(t==='page-cart') renderCart();
+    showPage(t);
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  prevPage=currentPage; currentPage=id;
+}
+
+/* ── GRIDS ── */
+function renderGrid(cat,id){
+  document.getElementById(id).innerHTML=PRODUCTS.filter(p=>p.category===cat).map(p=>`
+    <div class="card" onclick="openDetail(${p.id})">
+      <div class="card-img">
+        ${p.img?`<img src="${p.img}" alt="${p.name}" loading="lazy">`:`<span class="no-img">${cat==='albums'?'💿':'🃏'}</span>`}
+        ${p.badge?`<span class="badge ${p.badge==='preventa'?'pre':''}">${p.badge}</span>`:''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-artist">${p.artist}</div>
+        <div class="card-price">$${p.price.toLocaleString('es-CL')}</div>
+      </div>
+    </div>`).join('');
+}
+renderGrid('albums','albums-grid');
+renderGrid('photocards','photocards-grid');
+
+/* ── DETAIL ── */
+let detProduct=null, detVersion='';
+function openDetail(id){
+  const p=PRODUCTS.find(x=>x.id===id); if(!p) return;
+  detProduct=p; detVersion=p.versions[0]||'';
+  const iw=document.getElementById('detail-img-wrap');
+  iw.innerHTML=p.img?`<img src="${p.img}" alt="${p.name}">`:`<span class="no-img" style="font-size:5rem;opacity:.25">${p.category==='albums'?'💿':'🃏'}</span>`;
+  let html=`<div class="detail-title">${p.name}</div><div class="detail-artist">${p.artist}</div><div class="detail-price">$${p.price.toLocaleString('es-CL')}</div>`;
+  if(p.presale){const d=p.releaseDate?new Date(p.releaseDate).toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'}):'por confirmar';html+=`<div class="presale-notice"><strong>✦ Producto en Preventa</strong>Lanzamiento: ${d}. El álbum llegará a Chile entre 2 y 4 semanas después del lanzamiento.</div>`;}
+  if(p.description) html+=`<div class="detail-section"><p>${p.description}</p></div>`;
+  if(p.tracks.length) html+=`<div class="detail-section"><h4>Tracklist</h4><ul>${p.tracks.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+  if(p.inclusions.length) html+=`<div class="detail-section"><h4>Inclusiones</h4><ul>${p.inclusions.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+  if(p.benefits) html+=`<div class="detail-section"><h4>Beneficios Preventa</h4><p>${p.benefits}</p></div>`;
+  if(p.paymentDeadline) html+=`<div class="detail-section"><h4>Fecha límite segundo pago</h4><p style="color:var(--deep);font-weight:600;">⏰ ${p.paymentDeadline}</p></div>`;
+  html+=`<div class="detail-section"><h4>Versión</h4><div class="det-versions" id="det-versions">${p.versions.map((v,i)=>`<div class="det-ver-btn ${i===0?'selected':''}" onclick="selDetVer(this,'${v}')">${v}</div>`).join('')}</div></div>`;
+  html+=`<button class="btn-primary" style="margin-top:4px;" onclick="addToCartFromDetail()">🛒 Añadir al Carrito</button>`;
+  document.getElementById('detail-info').innerHTML=html;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  showPage('page-detail');
+}
+function selDetVer(el,v){document.querySelectorAll('.det-ver-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');detVersion=v;}
+function addToCartFromDetail(){if(detProduct) addToCart(detProduct.id,detVersion);}
+document.getElementById('back-btn').addEventListener('click',()=>{
+  const t=(prevPage==='page-detail')?'page-albums':prevPage;
+  document.querySelectorAll('nav button').forEach(b=>{if(b.dataset.page===t)b.classList.add('active');});
+  showPage(t);
+});
+
+/* ── CHECKOUT PAGE ── */
+let ckShip='', ckPay='', ckStep=1, ckPayPlan='full';
+
+function openCheckoutPage(){
+  if(!cart.length){showToast('Tu carrito está vacío');return;}
+  ckShip=''; ckPay=''; ckStep=1;
+  renderCheckoutPage();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  showPage('page-checkout');
+  window.scrollTo(0,0);
+}
+
+document.getElementById('checkout-back-btn').addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(b=>{if(b.dataset.page==='page-cart')b.classList.add('active');});
+  renderCart();
+  showPage('page-cart');
+});
+
+
+
+function renderCheckoutPage(){
+  const SHIP_LABELS={'starken-pp':'Starken — Por Pagar','starken-pg':'Starken — Pagado','blue-pp':'Bluexpress — Por Pagar','blue-pg':'Bluexpress — Pagado','presencial':'Entrega Presencial — Temuco'};
+
+  const sidebar=`
+    <div class="checkout-sidebar">
+      <div class="sidebar-title">Resumen del pedido</div>
+      ${cart.map(i=>`
+        <div class="sidebar-item">
+          <div><div class="si-name">${i.product.name}</div><div class="si-meta">${i.product.artist} · ${i.version} · x${i.qty}</div></div>
+          <div class="si-price">$${(i.product.price*i.qty).toLocaleString('es-CL')}</div>
+        </div>`).join('')}
+      <div class="sidebar-total">
+        <span class="sidebar-total-label">${ckPayPlan==='abono'?'A pagar ahora (50%)':'Total'}</span>
+        <span class="sidebar-total-val">$${(ckPayPlan==='abono'?Math.ceil(cartTotal()*0.5):cartTotal()).toLocaleString('es-CL')}</span>
+      </div>
+      <p style="font-size:.7rem;color:var(--muted);margin-top:8px;">* Mercado Pago incluye comisión + IVA.</p>
+    </div>`;
+
+  const steps=['Datos','Envío','Pago'];
+  const stepsHTML=`<div class="checkout-steps">${steps.map((s,i)=>`
+    <div class="ck-step ${i+1===ckStep?'active':i+1<ckStep?'done':''}">${i+1<ckStep?'✓ ':''} ${s}</div>`).join('')}
+  </div>`;
+
+  // ── Panel 1: contact ──
+  const p1=`
+    <div class="ck-panel ${ckStep===1?'active':''}">
+      <div class="ck-title">Tus datos</div>
+      <div class="ig-reminder"><span class="ig-icon">📸</span>
+        <span>Usarás tu <strong>usuario de Instagram</strong> para revisar tu pedido en "Seguimiento Pedido".</span>
+      </div>
+      <div class="field"><label>Usuario Instagram *</label><input type="text" id="ck-ig" placeholder="@usuario" value="${document.getElementById('ck-ig')?.value||''}"></div>
+      <div class="field"><label>Correo electrónico *</label><input type="email" id="ck-email" placeholder="correo@ejemplo.com" value="${document.getElementById('ck-email')?.value||''}"></div>
+      <div class="btn-row" style="margin-top:20px;">
+        <button class="btn-pri" style="flex:1;" onclick="ckGoStep(2)">Continuar →</button>
+      </div>
+    </div>`;
+
+  // ── Panel 2: shipping ──
+  const shipOpts=['starken-pp','starken-pg','blue-pp','blue-pg','presencial'];
+  const shipDescs={'starken-pp':'Domicilio o agencia — pagas el envío al recibir','starken-pg':'Domicilio o agencia — envío incluido en el pago','blue-pp':'Solo domicilio — pagas el envío al recibir','blue-pg':'Domicilio o Punto Blue — envío incluido en el pago','presencial':'Coordinación por grupo de WhatsApp'};
+  const shipHTML=shipOpts.map(v=>`
+    <label class="ship-opt ${ckShip===v?'selected':''}" onclick="ckSelectShip(this,'${v}')">
+      <input type="radio" name="ckship" value="${v}" ${ckShip===v?'checked':''}>
+      <div class="ship-opt-info">
+        <div class="ship-name">${SHIP_LABELS[v]}</div>
+        <div class="ship-desc">${shipDescs[v]}</div>
+      </div>
+    </label>`).join('');
+
+  const isPresencial = ckShip==='presencial';
+  const isCourier    = ckShip==='starken-pp'||ckShip==='starken-pg'||ckShip==='blue-pp'||ckShip==='blue-pg';
+  const dirPlaceholder = (ckShip==='starken-pp'||ckShip==='starken-pg')
+    ? 'Ej: Calle Alemania 123 / Agencia Temuco'
+    : ckShip==='blue-pp'
+    ? 'Ej: Av. Principal 456, Temuco'
+    : ckShip==='blue-pg'
+    ? 'Ej: Av. Principal 456 / Punto Blue Centro'
+    : 'Dirección';
+
+  const vNombre = document.getElementById('ck-nombre')?.value||'';
+  const vRut    = document.getElementById('ck-rut')?.value||'';
+  const vTel    = document.getElementById('ck-tel')?.value||'';
+  const vComuna = document.getElementById('ck-comuna')?.value||'';
+  const vDir    = document.getElementById('ck-dir')?.value||'';
+
+  const regionOpts = ['Arica y Parinacota','Tarapacá','Antofagasta','Atacama','Coquimbo','Valparaíso','Metropolitana de Santiago',"O'Higgins",'Maule','Ñuble','Biobío','La Araucanía','Los Ríos','Los Lagos','Aysén','Magallanes'];
+  const vRegion = document.getElementById('ck-region')?.value||'La Araucanía';
+  const regionSelect = '<select id="ck-region"><option value="">Seleccionar...</option>' +
+    regionOpts.map(r=>'<option'+(r===vRegion?' selected':'')+'>'+r+'</option>').join('') +
+    '</select>';
+
+  const courierFields = isCourier ? (
+    '<div class="form-row">' +
+      '<div class="field"><label>Nombre completo *</label><input type="text" id="ck-nombre" placeholder="Tu nombre" value="'+vNombre+'"></div>' +
+      '<div class="field"><label>RUT *</label><input type="text" id="ck-rut" placeholder="12.345.678-9" value="'+vRut+'"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+      '<div class="field"><label>Teléfono *</label><input type="tel" id="ck-tel" placeholder="+56 9 XXXX XXXX" value="'+vTel+'"></div>' +
+      '<div class="field"><label>Región *</label>' + regionSelect + '</div>' +
+    '</div>' +
+    '<div class="form-row">' +
+      '<div class="field"><label>Comuna *</label><input type="text" id="ck-comuna" placeholder="Tu comuna" value="'+vComuna+'"></div>' +
+      '<div class="field"><label>Dirección / Agencia / Punto Blue *</label><input type="text" id="ck-dir" placeholder="'+dirPlaceholder+'" value="'+vDir+'"></div>' +
+    '</div>'
+  ) : '';
+
+  const presencialFields = isPresencial ? (
+    '<div class="form-row">' +
+      '<div class="field"><label>Nombre completo *</label><input type="text" id="ck-nombre" placeholder="Tu nombre" value="'+vNombre+'"></div>' +
+      '<div class="field"><label>Teléfono *</label><input type="tel" id="ck-tel" placeholder="+56 9 XXXX XXXX" value="'+vTel+'"></div>' +
+    '</div>'
+  ) : '';
+
+    const p2=`
+    <div class="ck-panel ${ckStep===2?'active':''}">
+      <div class="ck-title">Datos de envío</div>
+      <div class="ship-options">${shipHTML}</div>
+      ${courierFields}
+      ${presencialFields}
+      <div class="btn-row" style="margin-top:20px;">
+        <button class="btn-sec" onclick="ckGoStep(1)">← Volver</button>
+        <button class="btn-pri" onclick="ckGoStep(3)">Continuar →</button>
+      </div>
+    </div>`;
+
+    // ── Panel 3: payment ──
+  const payMethods=[
+    {v:'transfer',name:'Transferencia Bancaria',desc:'Los datos aparecen al confirmar'},
+    {v:'mp',name:'Mercado Pago',desc:'Link enviado al correo (incluye comisión + IVA)'}
+  ];
+  const payHTML=payMethods.map(m=>`
+    <label class="pay-method ${ckPay===m.v?'selected':''}" onclick="ckSelectPay(this,'${m.v}')">
+      <input type="radio" name="ckpay" value="${m.v}" ${ckPay===m.v?'checked':''}>
+      <div><div class="pay-method-name">${m.name}</div><div class="pay-method-desc">${m.desc}</div></div>
+    </label>`).join('');
+
+  // Check if cart has presale items
+  const hasPresale = cart.some(i=>i.product.presale && i.product.category==='albums');
+  const totalFull  = cartTotal();
+  const totalAbono = Math.ceil(totalFull * 0.5);
+
+  const payPlanHTML = hasPresale ? `
+    <div class="pay-plan-box">
+      <h4>Plan de pago</h4>
+      <label class="pay-plan-opt ${ckPayPlan==='full'?'selected':''}" onclick="ckSelectPayPlan(this,'full')">
+        <input type="radio" name="ckplan" value="full" ${ckPayPlan==='full'?'checked':''}>
+        <div>
+          <div class="pay-plan-name">Pago completo</div>
+          <div class="pay-plan-desc">Pagas el total ahora</div>
+          <div class="pay-plan-amount">$${totalFull.toLocaleString('es-CL')}</div>
+        </div>
+      </label>
+      <label class="pay-plan-opt ${ckPayPlan==='abono'?'selected':''}" onclick="ckSelectPayPlan(this,'abono')">
+        <input type="radio" name="ckplan" value="abono" ${ckPayPlan==='abono'?'checked':''}>
+        <div>
+          <div class="pay-plan-name">Abono 50%</div>
+          <div class="pay-plan-desc">Pagas la mitad ahora y el resto en fecha acordada al llegar el álbum a Chile</div>
+          <div class="pay-plan-amount">Ahora: $${totalAbono.toLocaleString('es-CL')} · Después: $${(totalFull-totalAbono).toLocaleString('es-CL')}</div>
+        </div>
+      </label>
+      ${ckPayPlan==='abono'?`<div class="abono-notice"><strong>✦ Importante</strong>El segundo pago (50% restante) deberá realizarse en la fecha indicada en la descripción del producto. Te recordaremos por Instagram y correo.</div>`:''}
+    </div>` : '';
+
+  const p3=`
+    <div class="ck-panel ${ckStep===3?'active':''}">
+      <div class="ck-title">Método de pago</div>
+      ${payPlanHTML}
+      <div class="pay-box" style="background:transparent;border:none;padding:0;margin-bottom:16px;">${payHTML}</div>
+      <div class="field"><label>Nombre de quien realizará el pago *</label>
+        <input type="text" id="ck-titular" placeholder="Nombre del titular" value="${document.getElementById('ck-titular')?.value||''}">
+      </div>
+      <div class="btn-row" style="margin-top:20px;">
+        <button class="btn-sec" onclick="ckGoStep(2)">← Volver</button>
+        <button class="btn-pri" onclick="ckConfirm()">Confirmar Pedido ✦</button>
+      </div>
+    </div>`;
+
+  document.getElementById('checkout-body').innerHTML=`
+    <div class="checkout-layout">
+      <div>
+        ${stepsHTML}
+        ${p1}${p2}${p3}
+      </div>
+      ${sidebar}
+    </div>`;
+}
+
+function ckSelectShip(el,v){
+  ckShip=v;
+  // re-render to show/hide sucursal field without losing other inputs
+  renderCheckoutPage();
+  // restore focus hint
+}
+
+function ckSelectPay(el,v){ ckPay=v; renderCheckoutPage(); }
+function ckSelectPayPlan(el,v){ ckPayPlan=v; renderCheckoutPage(); }
+
+function ckGoStep(n){
+  if(n===2){
+    const ig=document.getElementById('ck-ig')?.value.trim();
+    const em=document.getElementById('ck-email')?.value.trim();
+    if(!ig||!em){showToast('Completa usuario Instagram y correo');return;}
+  }
+  if(n===3){
+    if(!ckShip){showToast('Selecciona un método de envío');return;}
+    const nombre=document.getElementById('ck-nombre')?.value.trim();
+    const tel=document.getElementById('ck-tel')?.value.trim();
+    if(!nombre||!tel){showToast('Completa nombre y teléfono');return;}
+    if(ckShip==='starken-pp'||ckShip==='starken-pg'||ckShip==='blue-pp'||ckShip==='blue-pg'){
+      const rut=document.getElementById('ck-rut')?.value.trim();
+      const region=document.getElementById('ck-region')?.value;
+      const comuna=document.getElementById('ck-comuna')?.value.trim();
+      const dir=document.getElementById('ck-dir')?.value.trim();
+      if(!rut||!region||!comuna||!dir){showToast('Completa todos los datos de envío');return;}
+    }
+  }
+  ckStep=n; renderCheckoutPage(); window.scrollTo(0,180);
+}
+
+async function ckConfirm(){
+  if(!ckPay){showToast('Selecciona un método de pago');return;}
+  const titular=document.getElementById('ck-titular')?.value.trim();
+  if(!titular){showToast('Ingresa el nombre de quien realizará el pago');return;}
+
+  const SHIP_LABELS={'starken-pp':'Starken (Por Pagar)','starken-pg':'Starken (Pagado)','blue-pp':'Bluexpress (Por Pagar)','blue-pg':'Bluexpress (Pagado)','presencial':'Entrega Presencial Temuco'};
+  const ig=document.getElementById('ck-ig').value.trim();
+  const igFull=ig.startsWith('@')?ig:'@'+ig;
+  const code='BLS-'+Math.floor(1000+Math.random()*9000);
+
+  const orderData={
+    code,
+    instagram: igFull,
+    email: document.getElementById('ck-email').value.trim(),
+    status: 'pending',
+    items: cart.map(i=>({name:i.product.name,artist:i.product.artist,version:i.version,qty:i.qty,price:i.product.price})),
+    total: ckPayPlan==='abono' ? Math.ceil(cartTotal()*0.5) : cartTotal(),
+    total_full: cartTotal(),
+    pay_plan: ckPayPlan==='abono' ? 'Abono 50%' : 'Pago completo',
+    pay_method: ckPay==='transfer'?'Transferencia Bancaria':'Mercado Pago',
+    shipping: SHIP_LABELS[ckShip]||ckShip,
+    address: ckShip==='presencial'?{
+      nombre:document.getElementById('ck-nombre').value.trim(),
+      tel:document.getElementById('ck-tel').value.trim()
+    }:{
+      nombre:document.getElementById('ck-nombre').value.trim(),
+      rut:document.getElementById('ck-rut').value.trim(),
+      tel:document.getElementById('ck-tel').value.trim(),
+      dir:document.getElementById('ck-dir').value.trim(),
+      dirLabel:'Dirección / Agencia / Punto Blue',
+      comuna:document.getElementById('ck-comuna').value.trim(),
+      region:document.getElementById('ck-region').value
+    }
+  };
+
+  const confirmBtn=document.querySelector('#checkout-body .btn-pri');
+  if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Guardando...';}
+
+  const {error}=await sb.from('orders').insert([orderData]);
+  if(error){
+    console.error(error);
+    showToast('Error al guardar el pedido, intenta de nuevo');
+    if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='Confirmar Pedido ✦';}
+    return;
+  }
+
+  cart=[]; updateBadge();
+
+  const payHTML=ckPay==='transfer'
+    ?`<div class="bank-details"><strong>Datos de Transferencia</strong>Banco: Banco de Chile<br>Tipo: Cuenta Corriente<br>Número: 000-123456-78<br>RUT: 12.345.678-9<br>Nombre: Base Line Store<br>Correo: pagos@baselinestore.cl<br><br><strong>Asunto:</strong> ${code} - ${igFull}</div>`
+    :`<div class="mp-notice"><strong>Mercado Pago</strong><br>El link de pago será enviado a tu correo. El monto incluye comisión de Mercado Pago + IVA.<br><span style="font-size:.76rem;color:var(--muted);">Revisa también tu carpeta de spam.</span></div>`;
+
+  document.getElementById('checkout-body').innerHTML=`
+    <div class="checkout-success">
+      <div class="cs-icon">✦</div>
+      <h2 class="cs-title">¡Pedido recibido!</h2>
+      <p class="cs-msg">Tu orden ha sido registrada. Confirmaremos una vez recibido el pago.</p>
+      <div class="cs-code">${code}</div>
+      <div class="cs-ig-note">Puedes revisar tu pedido en "Seguimiento Pedido" con tu usuario de Instagram.</div>
+      ${payHTML}
+      <button class="cs-back" onclick="goHomeFromCheckout()" style="margin-top:20px;">Volver a la tienda</button>
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function goHomeFromCheckout(){
+  document.querySelectorAll('nav button').forEach(b=>{if(b.dataset.page==='page-albums')b.classList.add('active');});
+  showPage('page-albums');
+}
+
+// Legacy no-op (modal no longer used)
+function openCheckout(){}
+function closeModal(){}
+
+/* -- TRACKING -- */
+const STEPS_DEF=[
+  {key:'pending',   label:'Pedido\nrecibido',    icon:'✦'},
+  {key:'confirmed', label:'Pago\nconfirmado',    icon:'♥'},
+  {key:'purchased', label:'Pedido\ncomprado',    icon:'✧'},
+  {key:'transit',   label:'En\ncamino',          icon:'✦'},
+  {key:'preparing', label:'Preparando\nenvío',   icon:'♥'},
+  {key:'shipped',   label:'Enviado',              icon:'✧'},
+  {key:'delivered', label:'Entregado',            icon:'✦'},
+];
+const STATUS_STEP={pending:0, confirmed:1, purchased:2, transit:3, preparing:4, shipped:5, delivered:6};
+const STATUS_LABEL={pending:'Pedido recibido',confirmed:'Pago confirmado',purchased:'Pedido comprado',transit:'En camino',preparing:'Preparando envío',shipped:'Enviado',delivered:'Entregado'};
+
+async function trackOrder(){
+  const raw=document.getElementById('track-input').value.trim();
+  if(!raw){showToast('Ingresa tu usuario de Instagram');return;}
+  const user=raw.startsWith('@')?raw:'@'+raw;
+  const result=document.getElementById('track-result');
+  const empty=document.getElementById('track-empty');
+
+  // Show loading
+  result.classList.remove('show');result.innerHTML='';
+  empty.style.display='none';
+  result.classList.add('show');
+  result.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px;">Buscando pedidos...</p>';
+
+  const {data:orders,error}=await sb.from('orders')
+    .select('*')
+    .ilike('instagram', user)
+    .order('created_at',{ascending:false});
+
+  if(error||!orders||!orders.length){
+    result.classList.remove('show');result.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+
+  result.innerHTML=orders.map(o=>{
+    const stepIdx=STATUS_STEP[o.status]??0;
+    const fillPct=stepIdx===0?0:Math.round((stepIdx/(STEPS_DEF.length-1))*100);
+
+    const progressHTML=`
+      <div class="progress-section">
+        <div class="progress-label">Estado del pedido</div>
+        <div class="progress-steps">
+          <div class="progress-line-bg"></div>
+          <div class="progress-line-fill" style="width:calc(${fillPct}% - 12px)"></div>
+          ${STEPS_DEF.map((s,i)=>`
+            <div class="ps-step">
+              <div class="ps-dot ${i<stepIdx?'done':i===stepIdx?'current':''}">${i<=stepIdx?s.icon:''}</div>
+              <div class="ps-label ${i<=stepIdx?'active':''}">${s.label.replace('\\n','<br>')}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+
+    const pillCls=o.status==='confirmed'?'confirmed':o.status==='shipped'?'shipped':o.status==='delivered'?'delivered':'pending';
+    const statusPill=`<span class="status-pill ${pillCls}"><span class="status-dot"></span>${STATUS_LABEL[o.status]||'Pendiente'}</span>`;
+
+    const itemsHTML=(o.items||[]).map(i=>`
+      <div class="order-item-row">
+        <div>
+          <div class="oi-name">${i.name}</div>
+          <div class="oi-meta">${i.artist} &middot; ${i.version} &middot; x${i.qty}</div>
+        </div>
+        <div class="oi-price">$${(i.price*i.qty).toLocaleString('es-CL')}</div>
+      </div>`).join('');
+
+    const totalHTML=o.total?`
+      <div class="order-total-row">
+        <span class="order-total-label">Total pagado</span>
+        <span class="order-total-val">$${Number(o.total).toLocaleString('es-CL')}</span>
+      </div>`:'';
+
+    const addr=o.address||{};
+    const addrHTML=Object.keys(addr).length?`
+      <div class="order-section">
+        <div class="order-sec-title">Datos de envío</div>
+        <div class="address-grid">
+          <div class="addr-field"><div class="addr-key">Nombre</div><div class="addr-val">${addr.nombre||'-'}</div></div>
+          <div class="addr-field"><div class="addr-key">Teléfono</div><div class="addr-val">${addr.tel||'-'}</div></div>
+          ${addr.rut?`<div class="addr-field"><div class="addr-key">RUT</div><div class="addr-val">${addr.rut}</div></div>`:''}
+          ${addr.dir?`<div class="addr-field"><div class="addr-key">${addr.dirLabel||'Dirección'}</div><div class="addr-val">${addr.dir}</div></div>`:''}
+          ${addr.comuna?`<div class="addr-field"><div class="addr-key">Comuna</div><div class="addr-val">${addr.comuna}</div></div>`:''}
+          ${addr.region?`<div class="addr-field"><div class="addr-key">Región</div><div class="addr-val">${addr.region}</div></div>`:''}
+        </div>
+      </div>`:'';
+
+    const trackingHTML = o.tracking_number ? `
+      <div class="order-section">
+        <div class="order-sec-title">Número de seguimiento</div>
+        <div style="background:var(--light);border-radius:var(--r-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--deep);letter-spacing:.06em;">${o.tracking_number}</span>
+          <button onclick="navigator.clipboard.writeText('${o.tracking_number}').then(()=>showToast('Número copiado ✦'))" style="background:none;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:5px 12px;font-size:.75rem;font-weight:600;color:var(--muted);cursor:pointer;">Copiar</button>
+        </div>
+        ${o.tracking_url?`<a href="${o.tracking_url}" target="_blank" style="display:inline-block;margin-top:8px;font-size:.8rem;color:var(--dark-pink);font-weight:600;text-decoration:none;">Rastrear envío →</a>`:''}
+      </div>` : '';
+
+    // Payment deadline
+    let deadlineHTML = '';
+    if(o.payment_deadline && o.status==='pending'){
+      const dl = new Date(o.payment_deadline);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const diffDays = Math.ceil((dl-today)/(1000*60*60*24));
+      const dlStr = dl.toLocaleDateString('es-CL',{day:'numeric',month:'long',year:'numeric'});
+      const expired = diffDays < 0;
+      const urgent = diffDays >= 0 && diffDays <= 1;
+      deadlineHTML = `
+        <div class="order-section">
+          <div class="deadline-box ${expired?'deadline-expired':''}">
+            <span class="deadline-icon">${expired?'⚠️':'⏰'}</span>
+            <div class="deadline-text">
+              <strong>${expired?'Plazo de pago vencido':'Fecha límite de pago'}</strong>
+              ${expired
+                ? 'El plazo para realizar el pago ha vencido. Contáctanos para coordinar.'
+                : urgent
+                  ? `<span style="color:#c0392b;font-weight:600;">¡Vence hoy! Tienes hasta el ${dlStr} para pagar.</span>`
+                  : `Tienes hasta el <strong>${dlStr}</strong> para realizar el pago (${diffDays} días).`
+              }
+            </div>
+          </div>
+        </div>`;
+    }
+
+    const chipsHTML=`
+      <div class="order-section">
+        <div class="order-sec-title">Información del pedido</div>
+        <div class="info-chips">
+          ${o.shipping?`<span class="info-chip">✦ ${o.shipping}</span>`:''}
+          ${o.pay_method?`<span class="info-chip">♥ ${o.pay_method}</span>`:''}
+          ${o.pay_plan?`<span class="info-chip">✧ ${o.pay_plan}</span>`:''}
+        </div>
+      </div>`;
+
+    const orderDate=o.created_at?new Date(o.created_at).toLocaleDateString('es-CL'):'';
+
+    return `
+    <div class="order-card">
+      <div class="order-card-head">
+        <div>
+          <div class="order-card-code">${o.code}</div>
+          ${orderDate?`<div class="order-card-date">${orderDate}</div>`:''}
+        </div>
+        ${statusPill}
+      </div>
+      ${progressHTML}
+      <div class="order-section">
+        <div class="order-sec-title">Productos</div>
+        ${itemsHTML}
+        ${totalHTML}
+      </div>
+      ${addrHTML}
+      ${deadlineHTML}
+      ${trackingHTML}
+      ${chipsHTML}
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('track-input').addEventListener('keydown',e=>{if(e.key==='Enter')trackOrder();});
+
+/* ── TOS ACCORDION ── */
+function toggleTos(){
+  const toggle=document.getElementById('tos-toggle');
+  const body=document.getElementById('tos-body');
+  const open=body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  toggle.
